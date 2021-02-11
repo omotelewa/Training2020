@@ -36,6 +36,8 @@ public class Admin {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		} catch (ClassNotFoundException e1) {
+			e1.printStackTrace();
 		}
 		
 		
@@ -66,6 +68,8 @@ public static void DeleteAccount(int accid) {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		}catch (ClassNotFoundException e1) {
+			e1.printStackTrace();
 		}
 		
 	if (balance == 0) {
@@ -85,6 +89,8 @@ public static void DeleteAccount(int accid) {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (IOException e1) {
+			e1.printStackTrace();
+		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
 		}
 	}
@@ -119,13 +125,11 @@ static void viewAccount(int accid) {
 		e.printStackTrace();
 	} catch (IOException e1) {
 		e1.printStackTrace();
+	} catch (ClassNotFoundException e1) {
+		e1.printStackTrace();
 	}
 	
-	
-	
-	
-	
-	
+		
 }
 
 static void viewTransactions(int accid) {
@@ -153,6 +157,8 @@ static void viewTransactions(int accid) {
 	} catch (SQLException e) {
 		e.printStackTrace();
 	} catch (IOException e1) {
+		e1.printStackTrace();
+	} catch (ClassNotFoundException e1) {
 		e1.printStackTrace();
 	}
 	

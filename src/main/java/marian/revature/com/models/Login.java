@@ -12,56 +12,24 @@ import marian.revature.com.utility.ConnectionUtil;
 
 public class Login {
 
-	private static final String DATABASE_CONN_PROPERTY = "src\\main\\java\\connection.properties";
+	private CustomerDetails c = null;
+	private String choice;
+	private String username = null;
+	private String password = null;
+	private boolean choices = true;
 
 	public Login() throws SQLException, IOException, InterruptedException {
-		CustomerDetails c = null;
-		String choice;
-		String username = null;
-		String password = null;
-		boolean choices = true;
+		
 		while (choices) {
-			System.out.println("Please enter your username");
-			Scanner accin = new Scanner(System.in);
-			username = accin.nextLine();
-			System.out.println("Please enter your password");
-			password = accin.nextLine();
+			promptUser();
 
-			try (Connection conn = ConnectionUtil.getConnectionfromPostgres(DATABASE_CONN_PROPERTY)) {
-				String sql = "SELECT COUNT(username) AS COUNT FROM project0.user1 A INNER JOIN project0.accounts B ON A.acc_id = B.acc_id WHERE username = ? AND PASSWORD = ? GROUP BY A.username";
-				PreparedStatement pstmt = conn.prepareStatement(sql);
-				pstmt.setString(1, username);
-				pstmt.setString(2, password);
-				ResultSet rs = pstmt.executeQuery();
-
-				while (rs.next()) {
-
-					int checker = rs.getInt("COUNT");
-
-					if (checker == 1) {
-
-						System.out.println("Logging You in");
-						Thread.sleep(1000);
-						System.out.print(".");
-						Thread.sleep(1000);
-						System.out.print(".");
-						Thread.sleep(1000);
-						System.out.print(".");
-						Thread.sleep(1000);
-						System.out.print(".");
-						System.out.println(" ");
-
-						choices = false;
-
-					} else {
-
-						System.out.println("Username and Password Not Found");
-					}
-
-				}
+			try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
+				authenticateUser(conn);
+			}catch (Exception e){
+				e.printStackTrace();
 			}
 		}
-		try (Connection conn = ConnectionUtil.getConnectionfromPostgres(DATABASE_CONN_PROPERTY)) {
+		try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
 			String sql = "SELECT * FROM project0.user1 A INNER JOIN project0.accounts B ON A.acc_id = B.acc_id WHERE username = ? AND PASSWORD = ? ";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, username);
@@ -307,5 +275,57 @@ public class Login {
 		}
 
 	}
+
+	private void promptUser(){
+		System.out.println("Please enter your username");
+			Scanner accin = new Scanner(System.in);
+			this.username = accin.nextLine();
+			System.out.println("Please enter your password");
+			this.password = accin.nextLine();
+	} // end of method
+
+	private boolean authenticateUser(Connection conn){
+		boolean result = false;
+		try {
+			String sql = "SELECT COUNT(username) AS COUNT FROM project0.user1 A INNER JOIN project0.accounts B ON A.acc_id = B.acc_id WHERE username = ? AND PASSWORD = ? GROUP BY A.username";
+			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, username);
+			pstmt.setString(2, password);
+			ResultSet rs = pstmt.executeQuery();
+			while (rs.next()) {
+
+				int checker = rs.getInt("COUNT");
+
+				if (checker == 1) {
+					
+					System.out.println("Logging You in");
+					Thread.sleep(1000);
+					System.out.print(".");
+					Thread.sleep(1000);
+					System.out.print(".");
+					Thread.sleep(1000);
+					System.out.print(".");
+					Thread.sleep(1000);
+					System.out.print(".");
+					System.out.println(" ");
+
+					// choices = false;
+					result = true; // logged in
+
+				} else {
+					System.out.println("Username and Password Not Found");
+					result = false; // 
+				}
+			}
+
+			
+		}catch (SQLException e){
+			e.printStackTrace();
+		}catch (InterruptedException e){
+			e.printStackTrace();
+		}
+		return result;
+		
+	}// end of method
 
 }

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-import daoOperations.CustomerDao;
 import marian.revature.com.models.CustomerDetails;
 import marian.revature.com.utility.ConnectionUtil;
 
@@ -24,7 +23,7 @@ public class CustomerDAOimpl implements CustomerDao {
 	@Override
 	public List<CustomerDetails> getUser() {
 		List<CustomerDetails> cl = new ArrayList<>();
-		try (Connection conn = ConnectionUtil.getConnectionfromPostgres(DATABASE_FIEDLS)) {
+		try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
 			String sql = "SELECT * FROM CustomerDetails";
 			Statement stmt = conn.createStatement();
 			ResultSet rs = stmt.executeQuery(sql);
