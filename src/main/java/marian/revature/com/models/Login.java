@@ -7,55 +7,38 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
+import java.util.stream.Stream;
+
+import org.apache.log4j.Logger;
 
 import marian.revature.com.utility.ConnectionUtil;
+import marian.revature.com.utility.InputValidationUtil;
 
 public class Login {
 
-	private CustomerDetails c = null;
+	private User currentUser = null;
 	private String choice;
 	private String username = null;
 	private String password = null;
 	private boolean choices = true;
+	private Scanner accin;
+	private int accountAttempt = 3; 
+	private boolean loggedin = false;
+	public static Logger LOG = Logger.getLogger(Login.class.getName());  
+
 
 	public Login() throws SQLException, IOException, InterruptedException {
+
+		/*
 		
-		while (choices) {
-			promptUser();
-
-			try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
-				authenticateUser(conn);
-			}catch (Exception e){
-				e.printStackTrace();
-			}
-		}
-		try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
-			String sql = "SELECT * FROM project0.user1 A INNER JOIN project0.accounts B ON A.acc_id = B.acc_id WHERE username = ? AND PASSWORD = ? ";
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, username);
-			pstmt.setString(2, password);
-			ResultSet rs = pstmt.executeQuery();
-
-			while (rs.next()) {
-
-				int ACCOUNT_ID = rs.getInt("acc_id");
-
-				int USER_ID = rs.getInt("id");
-				String USER_FIRSTNAME = rs.getString("first_name");
-				String USER_LASTNAME = rs.getString("last_name");
-				String USER_NAME = rs.getString("username");
-				c = new CustomerDetails(USER_ID, USER_FIRSTNAME, USER_LASTNAME, ACCOUNT_ID, USER_NAME);
-
-			}
-
-		}
+		
 		System.out.println(c.getUserName());
 		if (c.getUserName().contains("admin")) {
 			choices = true;
 
 			while (choices) {
 				System.out.println("What would you like to do today?");
-				Scanner accin = new Scanner(System.in);
+				this.accin = new Scanner(System.in);
 
 				System.out.println("Please enter your selection (case sensitive)");
 
@@ -145,12 +128,11 @@ public class Login {
 
 			while (choices) {
 				System.out.println("What would you like to do today?");
-				Scanner accin = new Scanner(System.in);
 
 				System.out.println("Please enter your selection (case sensitive)");
 
 				System.out.println("enter :\n'check balance'\n'deposit'\n'withdraw',\n'logout' ");
-				choice = accin.nextLine();
+				choice = this.accin.nextLine();
 
 				switch (choice) {
 				case "check balance":
@@ -173,8 +155,7 @@ public class Login {
 					boolean repeat = true;
 
 					while (repeat) {
-						System.out.println("enter : 'check balance','deposit','withdraw',or 'logout' ");
-						choice = accin.nextLine();
+						choice = this.accin.nextLine();
 
 						switch (choice) {
 
@@ -203,9 +184,11 @@ public class Login {
 			}
 
 		}
+		*/
 
 	}
 
+	/*
 	public Login(CustomerDetails c) throws SQLException, IOException {
 
 		// TODO Auto-generated method stub
@@ -216,7 +199,6 @@ public class Login {
 
 		while (choices) {
 			System.out.println("What would you like to do today?");
-			Scanner accin = new Scanner(System.in);
 
 			System.out.println("Please enter your selection (case sensitive)");
 
@@ -274,58 +256,106 @@ public class Login {
 			}
 		}
 
-	}
+	}*/
 
-	private void promptUser(){
+	// every action is failed, success, or another action... 
+	public String loginAttempt(){
+		loginAction();
+		
+		while (true){
+			if (accountAttempt == 0){
+				System.out.println("Too many failed login attempts");
+				String response = InputValidationUtil.promptUser("Please create an Account ... or try to LOGIN AGAIN.. Enter create/login", "create", "login"); 
+				if (response == null){
+					// user quit
+					return "failed"; 
+				}else if (response.contentEquals("login")){
+					accountAttempt = 3; 
+					loginAttempt();
+				}else { // then user wants to create
+					return "create"; 
+				}
+			}else {
+				// successful login... 
+				return "success";
+			}
+		}
+	}
+	private void loginAction(){
+		// User Login
+		while (choices && accountAttempt != 0) {
+			try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
+				promptUserNameAndPass();
+				boolean validLogin = authenticateUser(conn);
+				if (validLogin){
+					choices = false;
+					loggedin = true;
+				}else {
+					choices = true; 
+					accountAttempt--; 
+					System.out.println("Please try to login again... Accounts Attempts LEFT " + accountAttempt);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	private void promptUserNameAndPass() {
 		System.out.println("Please enter your username");
-			Scanner accin = new Scanner(System.in);
-			this.username = accin.nextLine();
-			System.out.println("Please enter your password");
-			this.password = accin.nextLine();
+		this.accin = new Scanner(System.in);
+		this.username = accin.nextLine();
+		System.out.println("Please enter your password");
+		this.password = accin.nextLine();
+		this.accin.close();
 	} // end of method
 
-	private boolean authenticateUser(Connection conn){
+
+	
+	
+	
+	
+	private boolean authenticateUser(Connection conn) {
 		boolean result = false;
+		PreparedStatement pstmt = null;
 		try {
 			String sql = "SELECT COUNT(username) AS COUNT FROM project0.user1 A INNER JOIN project0.accounts B ON A.acc_id = B.acc_id WHERE username = ? AND PASSWORD = ? GROUP BY A.username";
-			PreparedStatement pstmt = conn.prepareStatement(sql);
+			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, username);
 			pstmt.setString(2, password);
 			ResultSet rs = pstmt.executeQuery();
-			while (rs.next()) {
-
-				int checker = rs.getInt("COUNT");
-
-				if (checker == 1) {
-					
-					System.out.println("Logging You in");
-					Thread.sleep(1000);
-					System.out.print(".");
-					Thread.sleep(1000);
-					System.out.print(".");
-					Thread.sleep(1000);
-					System.out.print(".");
-					Thread.sleep(1000);
-					System.out.print(".");
-					System.out.println(" ");
-
-					// choices = false;
-					result = true; // logged in
-
-				} else {
-					System.out.println("Username and Password Not Found");
-					result = false; // 
-				}
+			rs.next();
+			int checker = rs.getInt("COUNT");
+			if (checker == 1) {
+				System.out.println("Logging You in");
+				Thread.sleep(500);
+				System.out.print(".");
+				Thread.sleep(500);
+				System.out.print(".");
+				Thread.sleep(500);
+				System.out.print(".");
+				Thread.sleep(500);
+				System.out.print(".");
+				System.out.println(" ");
+				// choices = false;
+				result = true; // logged in
+			} else {
+				System.out.println("Username and Password Not Found");
+				result = false; //
 			}
 
-			
-		}catch (SQLException e){
+		} catch (SQLException e) {
 			e.printStackTrace();
-		}catch (InterruptedException e){
+		} catch (InterruptedException e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				pstmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		}
 		return result;
-		
+
 	}// end of method
 
 }

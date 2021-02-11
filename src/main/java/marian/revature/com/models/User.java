@@ -1,73 +1,145 @@
 package marian.revature.com.models;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Scanner;
+import java.util.function.Predicate;
+
+import marian.revature.com.utility.InputValidationUtil;
+
 public class User {
-	
-	
-	int id;
-	String inputUsername; 
-	String inputPassword;
-	String inputFirstName;
-	String inputLastName;
-	String inputEmail;
-	Role r;
-	
-	public User (String inputusername, String inputPassword, 
-			String inputFirstName, String inputLastName, String inputEmail, Role r ) {
-		
-	
-		this.inputUsername = inputusername;
-		this.inputPassword = inputPassword;
-		this.inputFirstName = inputFirstName;
-		this.inputLastName = inputLastName;
-		this.inputEmail = inputEmail;
-		
-		this.r = r;
-		
-		
-		
+
+	private int id;
+	private String firstName;
+	private String email;
+	private String userName;
+	private String password;
+	private String role;
+
+	public User() {
+
 	}
-	
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
-	public String getInputUsername() {
-		return inputUsername;
+
+	public String getEmail() {
+		return email;
 	}
-	public void setInputUsername(String inputUsername) {
-		this.inputUsername = inputUsername;
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
-	public String getInputPassword() {
-		return inputPassword;
+
+	public String getRole() {
+		return role;
 	}
-	public void setInputPassword(String inputPassword) {
-		this.inputPassword = inputPassword;
+
+	public void setRole(String role) {
+		this.role = role;
 	}
-	public String getInputFirstName() {
-		return inputFirstName;
+
+	public String getFirstName() {
+		return firstName;
 	}
-	public void setInputFirstName(String inputFirstName) {
-		this.inputFirstName = inputFirstName;
+
+	public void setFirstName(String name) {
+		this.firstName = name;
 	}
-	public String getInputLastName() {
-		return inputLastName;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		if (id != other.id)
+			return false;
+
+		if (firstName == null) {
+			if (other.firstName != null)
+				return false;
+		} else if (!firstName.equals(other.firstName))
+			return false;
+		return true;
 	}
-	public void setInputLastName(String inputLastName) {
-		this.inputLastName = inputLastName;
+
+	public String getUserName() {
+		return userName;
 	}
-	public String getInputEmail() {
-		return inputEmail;
+
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
-	public void setInputEmail(String inputEmail) {
-		this.inputEmail = inputEmail;
+
+	public String getPassword() {
+		return password;
 	}
-	public Role getR() {
-		return r;
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
-	public void setR(Role r) {
-		this.r = r;
+
+	public static void resultSetMapper(User u, ResultSet rs) throws SQLException {
+		int id = rs.getInt("user_id");
+		String firstName = rs.getString("first_name");
+		String password = rs.getString("password");
+		String email = rs.getString("email");
+		String role = rs.getString("role");
+		String userName = rs.getString("user_name");
+		u.setEmail(email);
+		u.setId(id);
+		u.setRole(role);
+		u.setRole(password);
+		u.setUserName(userName);
+		u.setFirstName(firstName);
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", firstName=" + firstName + ", email=" + email + ", userName=" + userName + ", role="
+				+ role + "]";
+	}
+
+	public static User createUserByInput(Scanner scan) {
+		User user = new User();
+		String prompt = InputValidationUtil.pr("Enter a first name. ");
+		String firstName;
+
+		firstName = scan.nextLine();
+
+		firstName = InputValidationUtil.validateString(firstName, prompt, scan);
+		prompt = InputValidationUtil.pr("Enter a user name. ");
+		String userName = scan.nextLine();
+		userName = InputValidationUtil.validateString(userName, prompt, scan);
+		prompt = InputValidationUtil.pr("Enter a password. ");
+		String password = scan.nextLine();
+		password = InputValidationUtil.validateString(password, prompt, scan);
+		prompt = InputValidationUtil.pr("Enter an email. ");
+		String email = scan.nextLine();
+		email = InputValidationUtil.validateString(email, prompt, scan);
+		prompt = InputValidationUtil.pr("Enter a ROLE: CUSTOMER or ADMIN or EMPLOYEE ");
+		String role = scan.nextLine();
+		role = role.toLowerCase();
+		Predicate<String> validRole = (r) -> r.contentEquals("customer") || r.contentEquals("admin")
+				|| r.contentEquals("employee");
+		role = validRole.test(role) ? role : "";
+		role = InputValidationUtil.validateString(role, prompt, scan);
+		user.setEmail(email);
+		user.setFirstName(firstName);
+		user.setPassword(password);
+		user.setRole(role);
+		user.setUserName(userName);
+		return user;
+
 	}
 
 }

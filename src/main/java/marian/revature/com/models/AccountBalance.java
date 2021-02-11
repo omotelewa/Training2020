@@ -13,12 +13,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class AccountBalance {
-	private static final String DATABASE_PROPERTY_FILE = "src\\main\\java\\connection.properties";
 	private static Connection con;
 
 	public static double getBalance(int id) {
 		double balance = 0;
-		try (Connection conn = ConnectionUtil.getConnectionfromPostgres(DATABASE_PROPERTY_FILE)) {
+		try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
 			String sql = "SELECT BALANCE FROM project0.ACCOUNTs A INNER JOIN project0.user1 B ON A.acc_id = B.acc_id WHERE A.acc_id = ? ";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, id);
@@ -32,6 +31,8 @@ public class AccountBalance {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		} catch (ClassNotFoundException e2) {
+			e2.printStackTrace();
 		}
 
 		return balance;
@@ -44,7 +45,7 @@ public class AccountBalance {
 
 		System.out.println(balance);
 		if ((balance > withdrawal) && (withdrawal > 0)) {
-			try (Connection con = ConnectionUtil.getConnectionfromPostgres(DATABASE_PROPERTY_FILE)) {
+			try (Connection con = ConnectionUtil.getConnectionfromPostgres()) {
 
 				balance = balance - withdrawal;
 				CallableStatement cstmt = con.prepareCall("UPDATE project0.accounts SET BALANCE = ? WHERE acc_id = ?");
@@ -56,13 +57,16 @@ public class AccountBalance {
 			} catch (IOException e1) {
 
 				e1.printStackTrace();
+			} catch (ClassNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
 			}
 		}
 
 		else
 			System.out.println("Insufficient funds to complete transaction");
 
-		try (Connection con = ConnectionUtil.getConnectionfromPostgres(DATABASE_PROPERTY_FILE)) {
+		try (Connection con = ConnectionUtil.getConnectionfromPostgres()) {
 
 			CallableStatement cstmt = con.prepareCall("INSERT INTO project0.TRANSACTIONS\r\n" + "(AMOUNT, acc_id,TIME )\r\n"
 					+ "VALUES\r\n" + "(?, ?, to_date(?,'DD/MM/YYYY'))");
@@ -77,6 +81,9 @@ public class AccountBalance {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		} catch (ClassNotFoundException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
 		}
 
 		System.out.println("Cash Withdrawn" + "");
@@ -88,7 +95,7 @@ public class AccountBalance {
 
 		balance = AccountBalance.getBalance(ACCOUNT_ID);
 
-		try (Connection con = ConnectionUtil.getConnectionfromPostgres(DATABASE_PROPERTY_FILE)) {
+		try (Connection con = ConnectionUtil.getConnectionfromPostgres()) {
 
 			balance = balance + deposit;
 			CallableStatement cstmt = con.prepareCall("UPDATE project0.accounts SET BALANCE = ? WHERE acc_id = ?");
@@ -99,13 +106,16 @@ public class AccountBalance {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		} catch (ClassNotFoundException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
 		}
 
 		balance = AccountBalance.getBalance(ACCOUNT_ID);
 
 		System.out.println(balance);
 
-		try (Connection con = ConnectionUtil.getConnectionfromPostgres(DATABASE_PROPERTY_FILE)) {
+		try (Connection con = ConnectionUtil.getConnectionfromPostgres()) {
 
 			balance = balance + deposit;
 			CallableStatement cstmt = con.prepareCall("INSERT INTO project0.TRANSACTIONS\r\n" + "(AMOUNT, acc_id,TIME )\r\n"
@@ -121,6 +131,9 @@ public class AccountBalance {
 			e.printStackTrace();
 		} catch (IOException e1) {
 			e1.printStackTrace();
+		} catch (ClassNotFoundException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
 		}
 
 		System.out.println("Cash Deposited");
