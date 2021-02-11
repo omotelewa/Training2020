@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 
+import marian.revature.com.dao.UserDaoImpl;
 import marian.revature.com.utility.ConnectionUtil;
 import marian.revature.com.utility.InputValidationUtil;
 
@@ -25,6 +26,7 @@ public class Login {
 	private int accountAttempt = 3; 
 	private boolean loggedin = false;
 	public static Logger LOG = Logger.getLogger(Login.class.getName());  
+	private UserDaoImpl userDaoImpl = new UserDaoImpl();
 
 
 	public Login() throws SQLException, IOException, InterruptedException {
@@ -271,7 +273,7 @@ public class Login {
 					return "failed"; 
 				}else if (response.contentEquals("login")){
 					accountAttempt = 3; 
-					loginAttempt();
+					return loginAttempt();
 				}else { // then user wants to create
 					return "create"; 
 				}
@@ -281,19 +283,25 @@ public class Login {
 			}
 		}
 	}
+	
+	public User getLoggedInUser() {
+		return currentUser; 
+		
+	}
 	private void loginAction(){
 		// User Login
 		while (choices && accountAttempt != 0) {
 			try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
 				promptUserNameAndPass();
-				boolean validLogin = authenticateUser(conn);
+				boolean validLogin = authenticateUser(conn, this.username, this.password);
 				if (validLogin){
+					LOG.info("Successful login");
 					choices = false;
 					loggedin = true;
 				}else {
 					choices = true; 
 					accountAttempt--; 
-					System.out.println("Please try to login again... Accounts Attempts LEFT " + accountAttempt);
+					LOG.info("Please try to login again... Accounts Attempts LEFT " + accountAttempt);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -314,19 +322,19 @@ public class Login {
 	
 	
 	
-	private boolean authenticateUser(Connection conn) {
+	private boolean authenticateUser(Connection conn, String username, String password) {
 		boolean result = false;
 		PreparedStatement pstmt = null;
 		try {
-			String sql = "SELECT COUNT(username) AS COUNT FROM project0.user1 A INNER JOIN project0.accounts B ON A.acc_id = B.acc_id WHERE username = ? AND PASSWORD = ? GROUP BY A.username";
+			String sql = "SELECT COUNT(user_name) AS COUNT FROM project01.user WHERE user_name = ? AND PASSWORD = ? ";
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, username);
-			pstmt.setString(2, password);
+			pstmt.setString(1, username.toLowerCase());
+			pstmt.setString(2, password.toLowerCase());
 			ResultSet rs = pstmt.executeQuery();
 			rs.next();
 			int checker = rs.getInt("COUNT");
 			if (checker == 1) {
-				System.out.println("Logging You in");
+				LOG.info("Success! Logging You in");
 				Thread.sleep(500);
 				System.out.print(".");
 				Thread.sleep(500);
@@ -338,14 +346,19 @@ public class Login {
 				System.out.println(" ");
 				// choices = false;
 				result = true; // logged in
+				this.currentUser = userDaoImpl.getUserbyUsername(username); 
+				
 			} else {
-				System.out.println("Username and Password Not Found");
+				LOG.info("Username and Password Not Found");
 				result = false; //
 			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {

@@ -25,15 +25,20 @@ public class ConnectionUtil {
 		// prop.load(in);
 		try (final InputStream inputStream = new FileInputStream(DATABASE_PROPERTIES_WIN)) {
 			prop.load(inputStream);
+			LOG.info("SUCCESS FOR WINDOW");
+
 		} catch (Exception e) {
 			LOG.error(e.getMessage());
 			LOG.error("Could not load this properties file for WINDOWS... trying FOR UNIX ...");
 			try (final InputStream inputStream = new FileInputStream(DATABASE_PROPERTIES_UNIX)) {
 				prop.load(inputStream);
+				LOG.info("SUCCESS FOR UNIX");
+
 			} catch (Exception e1) {
 				System.err.println(e1.getMessage());
 				System.err.println("Could not load this properties file for both OS.");
 			}
+
 		}
 
 		return DriverManager.getConnection(prop.getProperty("url"), prop.getProperty("username"),
@@ -50,10 +55,32 @@ public class ConnectionUtil {
 
 			stmt = c.createStatement();
 			String sql = "CREATE TABLE IF NOT EXISTS project01.user " + "(user_id SERIAL PRIMARY KEY    NOT NULL,"
-					+ " first_name          TEXT    NOT NULL, " + " username          TEXT    NOT NULL, "
-					+ " password          TEXT    NOT NULL, " + " role          TEXT    NOT NULL )";
+					+ " first_name          TEXT    NOT NULL, " + " user_name          TEXT    NOT NULL, "
+					+ " email          TEXT    NOT NULL, " + " password          TEXT    NOT NULL, "
+					+ " role          TEXT    NOT NULL )";
 			stmt.executeUpdate(sql);
 			LOG.info("User Table created successfully");
+			stmt.close();
+			c.close();
+			LOG.info("Closed database successfully");
+		} catch (Exception e) {
+			LOG.error(e.getClass().getName() + ": " + e.getMessage());
+
+		}
+	}
+
+	public static void dropUserTable() {
+		Connection c = null;
+		Statement stmt = null;
+		try {
+
+			c = ConnectionUtil.getConnectionfromPostgres();
+			LOG.info("Opened database successfully -- dropping user table");
+
+			stmt = c.createStatement();
+			String sql = "DROP TABLE project01.user";
+			stmt.executeUpdate(sql);
+			LOG.info("User Table droped successfully");
 			stmt.close();
 			c.close();
 			LOG.info("Closed database successfully");
@@ -90,6 +117,27 @@ public class ConnectionUtil {
 		}
 	}
 
+	public static void dropBankAccountTable() {
+		Connection c = null;
+		Statement stmt = null;
+		try {
+
+			c = ConnectionUtil.getConnectionfromPostgres();
+			LOG.info("Opened database successfully -- dropping accounts table");
+
+			stmt = c.createStatement();
+			String sql = "DROP TABLE project01.accounts";
+			stmt.executeUpdate(sql);
+			LOG.info("accounts Table dropped successfully");
+			stmt.close();
+			c.close();
+			LOG.info("Closed database successfully");
+		} catch (Exception e) {
+			LOG.error(e.getClass().getName() + ": " + e.getMessage());
+
+		}
+	}
+
 	public static void createAccountApplicationTable() {
 		Connection c = null;
 		Statement stmt = null;
@@ -115,6 +163,27 @@ public class ConnectionUtil {
 		}
 	}
 
+	public static void dropAccountApplicationTable() {
+		Connection c = null;
+		Statement stmt = null;
+		try {
+
+			c = ConnectionUtil.getConnectionfromPostgres();
+			LOG.info("Opened database successfully -- dropping user table");
+
+			stmt = c.createStatement();
+			String sql = "DROP TABLE project01.account_application";
+			stmt.executeUpdate(sql);
+			LOG.info("User Table droped successfully");
+			stmt.close();
+			c.close();
+			LOG.info("Closed database successfully");
+		} catch (Exception e) {
+			LOG.error(e.getClass().getName() + ": " + e.getMessage());
+
+		}
+	}
+
 	public static String getCurrentDateString() {
 		Date d = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm");
@@ -125,6 +194,13 @@ public class ConnectionUtil {
 		ConnectionUtil.createAccountApplicationTable();
 		ConnectionUtil.createBankAccountTable();
 		ConnectionUtil.createUserTable();
+
+	}
+
+	public static void dropSchemas() {
+		ConnectionUtil.dropAccountApplicationTable();
+		ConnectionUtil.dropBankAccountTable();
+		ConnectionUtil.dropUserTable();
 
 	}
 

@@ -279,7 +279,7 @@ public class UserDaoImpl implements UserDao {
 
 		User currentUser = null;
 		try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
-			String sql = "SELECT * FROM project0.user WHERE user_name = ?";
+			String sql = "SELECT * FROM project01.user WHERE user_name = ?";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, username);
 			ResultSet rs = pstmt.executeQuery();
@@ -324,16 +324,24 @@ public class UserDaoImpl implements UserDao {
 	@Override
 	public User createUser(User user) {
 		LOG.info("USER IS BEING ADDED TO THE DB");
-
+		
+		
 		try (Connection conn = ConnectionUtil.getConnectionfromPostgres()) {
 			String sql = "INSERT INTO project01.user (first_name, email, role, user_name, password) VALUES (?,?,?,?,?)";
 			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setString(1, user.getFirstName());
-			pstmt.setString(2, user.getEmail());
-			pstmt.setString(3, user.getRole());
-			pstmt.setString(4, user.getUserName());
-			pstmt.setString(5, user.getPassword());
-			pstmt.execute();
+			User dbUser = getUserbyUsername(user.getUserName());
+			if (dbUser == null){
+				pstmt.setString(1, user.getFirstName());
+				pstmt.setString(2, user.getEmail());
+				pstmt.setString(3, user.getRole());
+				pstmt.setString(4, user.getUserName());
+				pstmt.setString(5, user.getPassword());
+				pstmt.execute();
+				LOG.info("USER Was added.");
+				return getUserbyUsername(user.getUserName());
+			}else {
+				return null; // means username existed already 
+			}
 		}catch (Exception e){
 			LOG.error(e.getMessage());
 		}
